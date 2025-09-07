@@ -1,7 +1,7 @@
 services:
   # Backend service
   - type: web
-    name: cyber-chatbot-backend
+    name: cyberbuddy-backend
     env: python
     plan: starter  # Free tier
     region: oregon
@@ -10,18 +10,29 @@ services:
     envVars:
       - key: GEMINI_API_KEY
         sync: false  # Set manually in Render dashboard
-      - key: JWT_SECRET_KEY
-        generateValue: true  # Render will auto-generate a secure key
       - key: GEMINI_MODEL
         value: gemini-1.5-flash
       - key: MAX_CONCURRENT_CALLS
         value: "1"
       - key: MIN_CALL_INTERVAL_SECONDS
         value: "1.5"
+      # Firebase Configuration - Set these manually in Render dashboard
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY_ID
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_CLIENT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_CERT_URL
+        sync: false
     
   # Frontend service (static site)
   - type: static
-    name: cyber-chatbot-frontend
+    name: cyberbuddy-frontend
     plan: starter  # Free tier
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
@@ -29,5 +40,5 @@ services:
       - key: VITE_API_URL
         fromService:
           type: web
-          name: cyber-chatbot-backend
+          name: cyberbuddy-backend
           property: url
