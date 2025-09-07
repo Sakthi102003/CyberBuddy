@@ -1,0 +1,76 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    './index.html',
+    './src/**/*.{js,jsx,ts,tsx}'
+  ],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        cyber: {
+          bg: '#0a0f1f',
+          panel: '#121a2b',
+          accent: '#00b4d8'
+        }
+      },
+      boxShadow: {
+        neon: '0 0 5px #00b4d8, 0 0 10px #00b4d8'
+      },
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: 'none',
+            color: 'inherit',
+            p: {
+              marginTop: '0.5rem',
+              marginBottom: '0.5rem',
+            },
+            h1: {
+              marginTop: '1rem',
+              marginBottom: '0.75rem',
+            },
+            h2: {
+              marginTop: '1rem',
+              marginBottom: '0.5rem',
+            },
+            h3: {
+              marginTop: '0.75rem',
+              marginBottom: '0.5rem',
+            },
+            ul: {
+              marginTop: '0.5rem',
+              marginBottom: '0.5rem',
+            },
+            ol: {
+              marginTop: '0.5rem',
+              marginBottom: '0.5rem',
+            },
+            li: {
+              marginTop: '0.25rem',
+              marginBottom: '0.25rem',
+            },
+            strong: {
+              fontWeight: '600',
+            },
+            code: {
+              backgroundColor: 'rgb(243 244 246)',
+              padding: '0.125rem 0.25rem',
+              borderRadius: '0.25rem',
+              fontSize: '0.875rem',
+            },
+            pre: {
+              backgroundColor: 'rgb(243 244 246)',
+              padding: '0.75rem',
+              borderRadius: '0.5rem',
+              overflow: 'auto',
+            },
+          },
+        },
+      },
+    }
+  },
+  plugins: [
+    require('@tailwindcss/typography'),
+  ]
+};
