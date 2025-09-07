@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import ThemeToggle from './ThemeToggle';
 import UserProfile from './UserProfile';
 
@@ -12,10 +13,12 @@ export default function Sidebar({
   setSearchQuery,
   updateChatTitle,
   user,
-  onLogout
+  onLogout,
+  onCloseSidebar
 }) {
   const [editingChat, setEditingChat] = useState(null);
   const [editTitle, setEditTitle] = useState('');
+  const isMobile = useIsMobile();
 
   const handleEditStart = (chat) => {
     setEditingChat(chat.id);
@@ -47,22 +50,47 @@ export default function Sidebar({
     return date.toLocaleDateString();
   };
 
+  const handleChatClick = (chatId) => {
+    setActiveChat(chatId);
+    // Close sidebar on mobile after selecting a chat
+    if (onCloseSidebar && isMobile) {
+      onCloseSidebar();
+    }
+  };
+
   return (
-    <div className="w-80 bg-gray-100 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-700 flex flex-col h-screen transition-colors duration-200">
+    <div className="w-full lg:w-80 bg-gray-100 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-700 flex flex-col h-screen transition-colors duration-200">
       {/* Header */}
       <div className="p-4 border-b border-gray-300 dark:border-gray-700">
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center justify-between mb-3 lg:justify-center">
+          {/* Close button for mobile */}
           <button
-            onClick={createNewChat}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors"
+            onClick={onCloseSidebar}
+            className="lg:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
-            New Chat
           </button>
-          <ThemeToggle />
+          
+          {/* Theme toggle - visible on desktop, hidden on mobile */}
+          <div className="hidden lg:block">
+            <ThemeToggle />
+          </div>
+          
+          {/* Spacer for mobile */}
+          <div className="lg:hidden w-9 h-9"></div>
         </div>
+        
+        <button
+          onClick={createNewChat}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          New Chat
+        </button>
       </div>
 
       {/* Search */}
@@ -98,7 +126,7 @@ export default function Sidebar({
                     ? 'bg-blue-100 dark:bg-blue-600/20 border border-blue-300 dark:border-blue-600/40' 
                     : 'hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
-                onClick={() => setActiveChat(chat.id)}
+                onClick={() => handleChatClick(chat.id)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">

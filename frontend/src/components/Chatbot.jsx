@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { chatAPI, sessionAPI } from '../utils/api';
 import MarkdownRenderer from './MarkdownRenderer';
 
-export default function Chatbot({ chat, updateChatMessages, updateChatTitle }) {
+export default function Chatbot({ chat, updateChatMessages, updateChatTitle, isMobile = false }) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
@@ -120,22 +120,24 @@ export default function Chatbot({ chat, updateChatMessages, updateChatTitle }) {
 
   return (
     <div className="w-full max-w-4xl flex flex-col h-screen">
-      {/* Header */}
-      <div className="flex justify-center items-center p-4 border-b border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 transition-colors duration-200">
-        <div className="text-center">
-          <h2 className="text-gray-900 dark:text-gray-200 font-semibold text-lg">{chat.title}</h2>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">CyberBuddy - AI Cybersecurity Assistant</p>
+      {/* Header - Hide on mobile since it's shown in the main header */}
+      {!isMobile && (
+        <div className="flex justify-center items-center p-4 border-b border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 transition-colors duration-200">
+          <div className="text-center">
+            <h2 className="text-gray-900 dark:text-gray-200 font-semibold text-lg">{chat.title}</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">CyberBuddy - AI Cybersecurity Assistant</p>
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
         {chat.messages.map(m => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] rounded-xl px-4 py-3 text-sm sm:text-base shadow-lg ${
+            <div className={`max-w-[85%] sm:max-w-[80%] rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base shadow-lg ${
               m.role === 'user' 
-                ? 'bg-blue-600 text-white ml-12 whitespace-pre-wrap break-words' 
-                : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 mr-12 border border-gray-200 dark:border-gray-700'
+                ? 'bg-blue-600 text-white ml-8 sm:ml-12 whitespace-pre-wrap break-words' 
+                : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 mr-8 sm:mr-12 border border-gray-200 dark:border-gray-700'
             } animate-fade-in transition-colors duration-200`}> 
               {m.role === 'user' ? (
                 <span className="whitespace-pre-wrap break-words">{m.content}</span>
@@ -147,7 +149,7 @@ export default function Chatbot({ chat, updateChatMessages, updateChatTitle }) {
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-xl text-sm animate-pulse border border-gray-200 dark:border-gray-700 mr-12 transition-colors duration-200">
+            <div className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 sm:px-4 py-2 sm:py-3 rounded-xl text-sm animate-pulse border border-gray-200 dark:border-gray-700 mr-8 sm:mr-12 transition-colors duration-200">
               <div className="flex items-center gap-2">
                 <div className="flex space-x-1">
                   <div className="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce"></div>
@@ -163,8 +165,8 @@ export default function Chatbot({ chat, updateChatMessages, updateChatTitle }) {
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 transition-colors duration-200">
-        <form onSubmit={e => { e.preventDefault(); sendMessage(); }} className="flex gap-3">
+      <div className="p-3 sm:p-4 border-t border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 transition-colors duration-200">
+        <form onSubmit={e => { e.preventDefault(); sendMessage(); }} className="flex gap-2 sm:gap-3">
           <div className="flex-1 relative">
             <textarea
               value={input}
@@ -172,10 +174,10 @@ export default function Chatbot({ chat, updateChatMessages, updateChatTitle }) {
               onKeyDown={handleKey}
               rows={1}
               placeholder="Ask about threats, vulnerabilities, best practices..."
-              className="w-full resize-none rounded-xl bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-0 outline-none text-gray-900 dark:text-gray-200 text-sm sm:text-base px-4 py-3 placeholder-gray-500 dark:placeholder-gray-400 min-h-[48px] max-h-32 transition-colors duration-200"
+              className="w-full resize-none rounded-xl bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-0 outline-none text-gray-900 dark:text-gray-200 text-sm sm:text-base px-3 sm:px-4 py-2 sm:py-3 placeholder-gray-500 dark:placeholder-gray-400 min-h-[40px] sm:min-h-[48px] max-h-32 transition-colors duration-200"
               style={{ 
                 height: 'auto',
-                minHeight: '48px'
+                minHeight: isMobile ? '40px' : '48px'
               }}
               onInput={(e) => {
                 e.target.style.height = 'auto';
@@ -186,12 +188,12 @@ export default function Chatbot({ chat, updateChatMessages, updateChatTitle }) {
           <button 
             type="submit" 
             disabled={loading || !input.trim()} 
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-medium text-white transition-colors flex items-center justify-center min-w-[80px]"
+            className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-medium text-white transition-colors flex items-center justify-center min-w-[60px] sm:min-w-[80px]"
           >
             {loading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
             )}

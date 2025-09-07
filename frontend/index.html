@@ -2,9 +2,24 @@
 <html lang="en" class="dark h-full">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#1f2937" />
     <title>CyberBuddy AI Cybersecurity Chatbot</title>
     <link rel="icon" type="image/png" href="/chatbot.png" />
+    <link rel="apple-touch-icon" href="/chatbot.png" />
+    <style>
+      /* Prevent zoom on input focus on iOS */
+      @supports (-webkit-touch-callout: none) {
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        textarea {
+          font-size: 16px !important;
+        }
+      }
+    </style>
   </head>
   <body class="h-full bg-cyber-bg text-gray-200 font-sans">
     <div id="root" class="h-full"></div>

@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import Chatbot from './components/Chatbot';
 import LoginForm from './components/LoginForm';
 import Sidebar from './components/Sidebar';
+import ThemeToggle from './components/ThemeToggle';
 import { API_BASE_URL } from './config.js';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { onAuthStateChange, signOutUser } from './firebase/auth';
+import { useIsMobile } from './hooks/useMediaQuery';
 import { sessionAPI, tokenService } from './utils/api';
 
 export default function App() {
@@ -21,6 +23,8 @@ function AppContent() {
   const [chats, setChats] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   // Check for existing login on app start
   useEffect(() => {
@@ -224,38 +228,73 @@ function AppContent() {
 
   // Show main application
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex transition-colors duration-200">
-      <Sidebar 
-        chats={filteredChats}
-        activeChat={activeChat}
-        setActiveChat={setActiveChat}
-        createNewChat={createNewChat}
-        deleteChat={deleteChat}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        updateChatTitle={updateChatTitle}
-        user={user}
-        onLogout={handleLogout}
-      />
-      <div className="flex-1 flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex transition-colors duration-200 relative">
+      {/* Mobile overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={`fixed lg:relative lg:translate-x-0 inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out ${
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:block`}>
+        <Sidebar 
+          chats={filteredChats}
+          activeChat={activeChat}
+          setActiveChat={setActiveChat}
+          createNewChat={createNewChat}
+          deleteChat={deleteChat}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          updateChatTitle={updateChatTitle}
+          user={user}
+          onLogout={handleLogout}
+          onCloseSidebar={() => setIsSidebarOpen(false)}
+        />
+      </div>
+      
+      {/* Main content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile header */}
+        <div className="lg:hidden flex items-center justify-between p-4 border-b border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
+            {activeChat ? chats.find(c => c.id === activeChat)?.title || 'CyberBuddy' : 'CyberBuddy'}
+          </h1>
+          <div className="w-10 h-10"> {/* Spacer for centering */}
+            <ThemeToggle />
+          </div>
+        </div>
+        
         <div className="flex-1 flex items-center justify-center">
           {activeChat ? (
             <Chatbot 
               chat={getCurrentChat()}
               updateChatMessages={updateChatMessages}
               updateChatTitle={updateChatTitle}
+              isMobile={isMobile}
             />
           ) : (
-            <div className="text-center text-gray-600 dark:text-gray-400 max-w-md">
-              <h1 className="text-3xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
+            <div className="text-center text-gray-600 dark:text-gray-400 max-w-md px-4">
+              <h1 className="text-2xl sm:text-3xl font-semibold mb-4 text-gray-900 dark:text-gray-200">
                 CyberBuddy
               </h1>
-              <p className="text-lg mb-6">
+              <p className="text-base sm:text-lg mb-6">
                 Your AI-powered cybersecurity assistant
               </p>
               <button
                 onClick={createNewChat}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors"
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors w-full sm:w-auto"
               >
                 Start New Chat
               </button>
