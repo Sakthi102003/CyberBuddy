@@ -22,16 +22,23 @@ export default function Chatbot({ chat, updateChatMessages, updateChatTitle, isM
   const loadChatMessages = async () => {
     if (!chat || messagesLoaded) return;
     
+    console.log('Loading messages for chat:', chat.id);
+    
     try {
       const response = await sessionAPI.getMessages(chat.id);
+      console.log('Messages response:', response);
+      
       const formattedMessages = response.messages.map(msg => ({
         id: msg.id || crypto.randomUUID(),
         role: msg.role === 'assistant' ? 'bot' : msg.role,
         content: msg.content
       }));
       
+      console.log('Formatted messages:', formattedMessages);
+      
       // Add welcome message if no messages exist
       if (formattedMessages.length === 0) {
+        console.log('No messages found, adding welcome message');
         formattedMessages.push({
           id: 'welcome',
           role: 'bot',
@@ -41,8 +48,17 @@ export default function Chatbot({ chat, updateChatMessages, updateChatTitle, isM
       
       updateChatMessages(chat.id, formattedMessages);
       setMessagesLoaded(true);
+      console.log('Messages loaded successfully for chat:', chat.id);
     } catch (error) {
-      console.error('Failed to load messages:', error);
+      console.error('Failed to load messages for chat:', chat.id, error);
+      
+      // Show more specific error information
+      if (error.message.includes('401')) {
+        console.error('Authentication error while loading messages');
+      } else if (error.message.includes('404')) {
+        console.error('Chat session not found');
+      }
+      
       // Fallback: use empty messages with welcome
       const welcomeMessage = {
         id: 'welcome',

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Chatbot from './components/Chatbot';
+import DebugPanel from './components/DebugPanel';
 import LoginForm from './components/LoginForm';
 import Sidebar from './components/Sidebar';
 import ThemeToggle from './components/ThemeToggle';
@@ -29,6 +30,8 @@ function AppContent() {
   // Check for existing login on app start
   useEffect(() => {
     const unsubscribe = onAuthStateChange(async (firebaseUser) => {
+      console.log('Auth state changed:', firebaseUser ? 'User logged in' : 'User logged out');
+      
       if (firebaseUser) {
         // User is signed in
         const userData = {
@@ -38,20 +41,34 @@ function AppContent() {
           firebase_uid: firebaseUser.uid
         };
         
+        console.log('Setting user data:', userData);
+        
         try {
           // Get Firebase ID token and store it
           const token = await firebaseUser.getIdToken(true); // Force refresh
+          console.log('Firebase token obtained');
           tokenService.setToken(token);
           
           setUser(userData);
-          loadUserChats();
+          
+          // Load user chats after setting user and token
+          console.log('Loading user chats after auth...');
+          setTimeout(() => {
+            loadUserChats();
+          }, 100); // Small delay to ensure state is set
+          
         } catch (error) {
           console.error('Error getting Firebase token:', error);
           // Still set user but they might need to refresh
           setUser(userData);
+          // Try to load chats anyway
+          setTimeout(() => {
+            loadUserChats();
+          }, 100);
         }
       } else {
         // User is signed out
+        console.log('User signed out, clearing state');
         setUser(null);
         setChats([]);
         setActiveChat(null);
@@ -89,7 +106,10 @@ function AppContent() {
 
   const loadUserChats = async () => {
     try {
+      console.log('Loading user chats...');
       const sessions = await sessionAPI.getSessions();
+      console.log('Sessions loaded:', sessions);
+      
       // Convert API response to match existing format
       const formattedChats = sessions.map(session => ({
         id: session.id,
@@ -98,9 +118,15 @@ function AppContent() {
         createdAt: session.created_at,
         updatedAt: session.updated_at
       }));
+      
+      console.log('Formatted chats:', formattedChats);
       setChats(formattedChats);
     } catch (error) {
       console.error('Failed to load chats:', error);
+      // Show user-friendly error
+      if (error.message.includes('401')) {
+        console.log('Authentication error - user may need to re-login');
+      }
     }
   };
 
@@ -253,6 +279,7 @@ function AppContent() {
           user={user}
           onLogout={handleLogout}
           onCloseSidebar={() => setIsSidebarOpen(false)}
+          refreshChats={loadUserChats}
         />
       </div>
       
@@ -302,6 +329,9 @@ function AppContent() {
           )}
         </div>
       </div>
+      
+      {/* Debug Panel - only show in development or when needed */}
+      <DebugPanel user={user} chats={chats} />
     </div>
   );
 }

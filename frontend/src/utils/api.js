@@ -12,11 +12,14 @@ export const tokenService = {
   getFreshToken: async () => {
     try {
       if (auth.currentUser) {
+        console.log('Getting fresh Firebase token...');
         // Force refresh token to get a fresh one
         const token = await auth.currentUser.getIdToken(true);
         tokenService.setToken(token);
+        console.log('Fresh token obtained and stored');
         return token;
       }
+      console.log('No current user, cannot get fresh token');
       return null;
     } catch (error) {
       console.error('Error getting fresh token:', error);
@@ -26,14 +29,25 @@ export const tokenService = {
   
   getAuthHeaders: async () => {
     try {
+      console.log('Getting auth headers...');
       // Try to get a fresh token
       const token = await tokenService.getFreshToken();
-      return token ? { 'Authorization': `Bearer ${token}` } : {};
+      if (token) {
+        console.log('Using fresh token for auth headers');
+        return { 'Authorization': `Bearer ${token}` };
+      } else {
+        console.log('No fresh token available');
+        return {};
+      }
     } catch (error) {
       console.error('Error getting auth headers:', error);
       // Fallback to stored token
       const token = tokenService.getToken();
-      return token ? { 'Authorization': `Bearer ${token}` } : {};
+      if (token) {
+        console.log('Using stored token as fallback');
+        return { 'Authorization': `Bearer ${token}` };
+      }
+      return {};
     }
   }
 };
@@ -41,8 +55,10 @@ export const tokenService = {
 // Helper function to make API calls with automatic token refresh
 const makeAuthenticatedRequest = async (url, options = {}) => {
   try {
+    console.log('Making authenticated request to:', url);
     // Get fresh auth headers
     const authHeaders = await tokenService.getAuthHeaders();
+    console.log('Auth headers obtained:', authHeaders.Authorization ? 'Bearer token present' : 'No token');
     
     const response = await fetch(url, {
       ...options,
@@ -51,6 +67,8 @@ const makeAuthenticatedRequest = async (url, options = {}) => {
         ...authHeaders,
       },
     });
+
+    console.log('Response status:', response.status);
 
     // If we get a 401, try one more time with a fresh token
     if (response.status === 401) {
@@ -65,6 +83,7 @@ const makeAuthenticatedRequest = async (url, options = {}) => {
         },
       });
       
+      console.log('Retry response status:', retryResponse.status);
       return retryResponse;
     }
 
