@@ -161,7 +161,7 @@ function AppContent() {
       // Convert API response to match existing format
       const formattedChats = sessions.map(session => ({
         id: session.id,
-        title: session.title,
+        title: session.title || 'Untitled Chat', // Ensure title is always a string
         messages: [], // Will be loaded when needed
         created_at: session.created_at,
         updated_at: session.updated_at
@@ -286,12 +286,19 @@ function AppContent() {
     return chats.find(chat => chat.id === activeChat) || null;
   };
 
-  const filteredChats = chats.filter(chat => 
-    chat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    chat.messages.some(msg => 
-      msg.content.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
+  const filteredChats = chats.filter(chat => {
+    // Ensure title and messages exist and are valid
+    const title = chat.title || '';
+    const messages = chat.messages || [];
+    const query = searchQuery.toLowerCase();
+    
+    return (
+      title.toLowerCase().includes(query) ||
+      messages.some(msg => 
+        msg && msg.content && msg.content.toLowerCase().includes(query)
+      )
+    );
+  });
 
   // Show loading screen
   if (loading) {
