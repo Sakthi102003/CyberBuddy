@@ -107,7 +107,6 @@ The backend has been completely rebuilt with a clean, modern architecture!
 
 The `.env` file contains:
 ```
-GEMINI_API_KEY=AIzaSyDdNFmnPszlTiMMv4yap-z7ETsTdU_zlZk
 JWT_SECRET_KEY=your-secret-key-change-in-production-use-random-string
 DATABASE_URL=sqlite:///./cyberbuddy.db
 ```

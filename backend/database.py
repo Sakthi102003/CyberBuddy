@@ -8,17 +8,35 @@ from datetime import datetime
 from config import FIREBASE_CREDENTIALS_PATH
 from typing import Optional, List, Dict
 import uuid
+import os
+import json
 
 # Initialize Firebase Admin
 try:
-    if FIREBASE_CREDENTIALS_PATH.exists():
+    # Check if running in production with environment variables
+    firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS_JSON')
+    
+    if firebase_credentials_json:
+        # Production: Use credentials from environment variable
+        print("Initializing Firebase with environment variable credentials")
+        cred_dict = json.loads(firebase_credentials_json)
+        cred = credentials.Certificate(cred_dict)
+        firebase_admin.initialize_app(cred)
+        print("Firebase Admin initialized successfully (production mode)")
+    elif FIREBASE_CREDENTIALS_PATH.exists():
+        # Development: Use credentials from file
+        print("Initializing Firebase with service account file")
         cred = credentials.Certificate(str(FIREBASE_CREDENTIALS_PATH))
         firebase_admin.initialize_app(cred)
-        print("Firebase Admin initialized successfully")
+        print("Firebase Admin initialized successfully (development mode)")
     else:
-        print(f"Warning: Firebase credentials file not found at {FIREBASE_CREDENTIALS_PATH}")
+        print(f"Error: Firebase credentials not found!")
+        print(f"  - Checked file: {FIREBASE_CREDENTIALS_PATH}")
+        print(f"  - Checked env var: FIREBASE_CREDENTIALS_JSON")
+        raise ValueError("Firebase credentials not configured. Set FIREBASE_CREDENTIALS_JSON environment variable or provide ServiceAccountKey.json")
 except Exception as e:
-    print(f"Warning: Firebase initialization failed: {e}")
+    print(f"Error: Firebase initialization failed: {e}")
+    raise
 
 # Get Firestore client
 db = firestore.client()
