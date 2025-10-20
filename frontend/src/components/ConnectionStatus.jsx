@@ -8,7 +8,9 @@ export default function ConnectionStatus() {
   const checkConnection = async () => {
     try {
       setStatus('checking');
-      const response = await fetch(`${API_BASE_URL}/`, {
+      // Check root endpoint instead of /api/v1/ 
+      const baseUrl = API_BASE_URL.replace('/api/v1', '');
+      const response = await fetch(`${baseUrl}/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

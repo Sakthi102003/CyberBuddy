@@ -4,22 +4,19 @@ import { auth } from '../firebase/config.js';
 
 // Auth token management with automatic refresh
 export const tokenService = {
-  getToken: () => localStorage.getItem('auth_token'),
-  setToken: (token) => localStorage.setItem('auth_token', token),
-  removeToken: () => localStorage.removeItem('auth_token'),
-  
-  // Get fresh token with automatic refresh
+  // Get fresh Firebase ID token
   getFreshToken: async () => {
     try {
+      // Check if we have a Firebase user for Firebase auth
       if (auth.currentUser) {
-        console.log('Getting fresh Firebase token...');
-        // Force refresh token to get a fresh one
-        const token = await auth.currentUser.getIdToken(true);
-        tokenService.setToken(token);
-        console.log('Fresh token obtained and stored');
-        return token;
+        console.log('Getting fresh Firebase ID token...');
+        // Get Firebase ID token directly - backend verifies it with Firebase Admin SDK
+        const idToken = await auth.currentUser.getIdToken(true);
+        console.log('Fresh Firebase ID token obtained');
+        return idToken;
       }
-      console.log('No current user, cannot get fresh token');
+      
+      console.log('No Firebase user available');
       return null;
     } catch (error) {
       console.error('Error getting fresh token:', error);
@@ -30,23 +27,17 @@ export const tokenService = {
   getAuthHeaders: async () => {
     try {
       console.log('Getting auth headers...');
-      // Try to get a fresh token
+      // Get Firebase ID token directly
       const token = await tokenService.getFreshToken();
       if (token) {
-        console.log('Using fresh token for auth headers');
+        console.log('Using Firebase ID token for auth headers');
         return { 'Authorization': `Bearer ${token}` };
       } else {
-        console.log('No fresh token available');
+        console.log('No token available');
         return {};
       }
     } catch (error) {
       console.error('Error getting auth headers:', error);
-      // Fallback to stored token
-      const token = tokenService.getToken();
-      if (token) {
-        console.log('Using stored token as fallback');
-        return { 'Authorization': `Bearer ${token}` };
-      }
       return {};
     }
   }
@@ -56,9 +47,21 @@ export const tokenService = {
 const makeAuthenticatedRequest = async (url, options = {}) => {
   try {
     console.log('Making authenticated request to:', url);
+    
+    // Check if user is authenticated
+    if (!auth.currentUser) {
+      console.error('No authenticated user found');
+      throw new Error('User not authenticated');
+    }
+    
     // Get fresh auth headers
     const authHeaders = await tokenService.getAuthHeaders();
-    console.log('Auth headers obtained:', authHeaders.Authorization ? 'Bearer token present' : 'No token');
+    console.log('Auth headers obtained:', authHeaders.Authorization ? `Bearer token present (${authHeaders.Authorization.substring(0, 30)}...)` : 'No token');
+    
+    if (!authHeaders.Authorization) {
+      console.error('Failed to get authorization token');
+      throw new Error('Failed to get authentication token');
+    }
     
     const response = await fetch(url, {
       ...options,
@@ -96,55 +99,8 @@ const makeAuthenticatedRequest = async (url, options = {}) => {
 
 // API service for authentication
 export const authAPI = {
-  register: async (username, email, password) => {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, email, password }),
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Registration failed');
-    }
-    
-    return response.json();
-  },
-
-  login: async (username, password) => {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Login failed');
-    }
-    
-    return response.json();
-  },
-
-  logout: async () => {
-    const authHeaders = await tokenService.getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-      method: 'POST',
-      headers: {
-        ...authHeaders,
-      },
-    });
-    
-    tokenService.removeToken();
-    return response.ok;
-  },
-
   getCurrentUser: async () => {
-    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/auth/me`);
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/user/me`);
     
     if (!response.ok) {
       throw new Error('Failed to get user info');
@@ -154,77 +110,60 @@ export const authAPI = {
   }
 };
 
-// API service for chat sessions
+// API service for chat conversations (formerly sessions)
 export const sessionAPI = {
+  // Create a new conversation (not needed - created automatically on first message)
   createSession: async (title = 'New Chat') => {
-    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/sessions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ title }),
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to create session');
-    }
-    
-    return response.json();
+    // The new backend creates conversations automatically when sending first message
+    // Return a placeholder that will be replaced when first message is sent
+    return { 
+      id: null, 
+      title,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
   },
 
+  // Get all conversations
   getSessions: async () => {
-    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/sessions`);
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/conversations`);
     
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to get sessions');
+      throw new Error(error.detail || 'Failed to get conversations');
     }
     
     return response.json();
   },
 
+  // Update conversation (not supported in new backend - conversations auto-update)
   updateSession: async (sessionId, title) => {
     console.log('sessionAPI.updateSession called with:', { sessionId, title });
-    console.log('API_BASE_URL:', API_BASE_URL);
     
-    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/sessions/${sessionId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ title }),
-    });
-    
-    console.log('Response status:', response.status);
-    console.log('Response ok:', response.ok);
-    
-    if (!response.ok) {
-      const error = await response.json();
-      console.error('API Error:', error);
-      throw new Error(error.detail || 'Failed to update session');
-    }
-    
-    const result = await response.json();
-    console.log('Update session result:', result);
-    return result;
+    // The new backend doesn't have an update conversation endpoint
+    // Conversations are auto-named based on first message
+    // We'll just update locally and not throw an error
+    console.log('Note: Backend auto-generates conversation titles, skipping update');
+    return { id: sessionId, title };
   },
 
+  // Delete a conversation
   deleteSession: async (sessionId) => {
-    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/sessions/${sessionId}`, {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/conversations/${sessionId}`, {
       method: 'DELETE',
     });
     
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to delete session');
+      throw new Error(error.detail || 'Failed to delete conversation');
     }
     
     return response.json();
   },
 
+  // Get messages in a conversation
   getMessages: async (sessionId) => {
-    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/sessions/${sessionId}/messages`);
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/conversations/${sessionId}/messages`);
     
     if (!response.ok) {
       const error = await response.json();
@@ -237,38 +176,62 @@ export const sessionAPI = {
 
 // API service for chat
 export const chatAPI = {
-  sendMessage: async (message, sessionId) => {
-    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ message, session_id: sessionId }),
-    });
+  sendMessage: async (message, conversationId = null, retryCount = 0) => {
+    const maxRetries = 3;
+    const baseDelay = 2000; // 2 seconds
     
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to send message');
+    try {
+      const body = { message };
+      if (conversationId) {
+        body.conversation_id = conversationId;
+      }
+
+      const response = await makeAuthenticatedRequest(`${API_BASE_URL}/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+      
+      // Handle rate limit errors with retry
+      if (response.status === 429) {
+        if (retryCount < maxRetries) {
+          const delay = baseDelay * Math.pow(2, retryCount);
+          console.log(`Rate limit hit. Retrying in ${delay / 1000}s... (attempt ${retryCount + 1}/${maxRetries})`);
+          
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return chatAPI.sendMessage(message, conversationId, retryCount + 1);
+        } else {
+          throw new Error('Gemini API rate limit exceeded. Please wait a moment and try again.');
+        }
+      }
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to send message');
+      }
+      
+      return response.json();
+    } catch (error) {
+      // If it's a network error and we haven't exceeded retries, try again
+      if (retryCount < maxRetries && (error.message.includes('fetch') || error.message.includes('network'))) {
+        const delay = baseDelay * Math.pow(2, retryCount);
+        console.log(`Network error. Retrying in ${delay / 1000}s... (attempt ${retryCount + 1}/${maxRetries})`);
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return chatAPI.sendMessage(message, conversationId, retryCount + 1);
+      }
+      
+      throw error;
     }
-    
-    return response.json();
   },
 
+  // Reset session is not supported in new backend
+  // Conversations can be deleted and recreated instead
   resetSession: async (sessionId) => {
-    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/reset`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ session_id: sessionId }),
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to reset session');
-    }
-    
-    return response.json();
+    console.log('Note: Reset session not supported, delete conversation instead');
+    throw new Error('Reset not supported. Please delete the conversation and start a new one.');
   }
 };
 

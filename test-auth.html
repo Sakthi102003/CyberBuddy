@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberBuddy Auth Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover { background: #357abd; }
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #4285f4;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .error { border-left-color: #f44336; background: #ffebee; }
+        .success { border-left-color: #4caf50; background: #e8f5e9; }
+        h1 { color: #333; }
+        h2 { color: #666; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 CyberBuddy Authentication Test</h1>
+        <p>This page helps debug authentication issues between frontend and backend.</p>
+        
+        <h2>Step 1: Test Backend</h2>
+        <button onclick="testBackend()">Test Backend Connection</button>
+        <div id="backend-output" class="output"></div>
+        
+        <h2>Step 2: Test Firebase</h2>
+        <button onclick="testFirebase()">Check Firebase Status</button>
+        <button onclick="signInTest()">Sign In with Google</button>
+        <button onclick="getToken()">Get Firebase Token</button>
+        <div id="firebase-output" class="output"></div>
+        
+        <h2>Step 3: Test Backend Auth</h2>
+        <button onclick="testBackendAuth()">Test Backend with Token</button>
+        <div id="auth-output" class="output"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCIWw8qZVaCa2ZMoJx33aNQ6plfzBA5-jw",
+            authDomain: "cyberbuddy-da99a.firebaseapp.com",
+            projectId: "cyberbuddy-da99a",
+            storageBucket: "cyberbuddy-da99a.firebasestorage.app",
+            messagingSenderId: "519203222156",
+            appId: "1:519203222156:web:6cd2dcd8348a238b1cc1a9",
+            measurementId: "G-84JB64HDW7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        window.auth = auth;
+
+        const API_BASE = 'http://127.0.0.1:8000/api/v1';
+
+        window.testBackend = async function() {
+            const output = document.getElementById('backend-output');
+            output.className = 'output';
+            output.textContent = 'Testing backend...\n\n';
+            
+            try {
+                // Test root endpoint
+                const rootRes = await fetch('http://127.0.0.1:8000');
+                const rootData = await rootRes.json();
+                output.textContent += `✅ Root endpoint (http://127.0.0.1:8000): ${rootRes.status}\n`;
+                output.textContent += `   Message: ${rootData.message}\n\n`;
+                
+                // Test protected endpoint (should fail)
+                const protectedRes = await fetch(`${API_BASE}/conversations`);
+                output.textContent += `${protectedRes.status === 403 ? '✅' : '❌'} Protected endpoint without auth: ${protectedRes.status}\n`;
+                output.textContent += `   Expected: 403 (Forbidden)\n\n`;
+                
+                if (rootRes.ok) {
+                    output.className = 'output success';
+                    output.textContent += '✅ Backend is working correctly!';
+                } else {
+                    output.className = 'output error';
+                    output.textContent += '❌ Backend has issues';
+                }
+            } catch (error) {
+                output.className = 'output error';
+                output.textContent += `❌ Error: ${error.message}\n\n`;
+                output.textContent += 'Make sure backend is running on port 8000!';
+            }
+        };
+
+        window.testFirebase = function() {
+            const output = document.getElementById('firebase-output');
+            output.className = 'output';
+            output.textContent = 'Checking Firebase status...\n\n';
+            
+            if (auth) {
+                output.textContent += '✅ Firebase Auth initialized\n';
+                if (auth.currentUser) {
+                    output.className = 'output success';
+                    output.textContent += `✅ User logged in: ${auth.currentUser.email}\n`;
+                    output.textContent += `   UID: ${auth.currentUser.uid}\n`;
+                    output.textContent += `   Display Name: ${auth.currentUser.displayName || 'N/A'}\n`;
+                } else {
+                    output.textContent += '⚠️ No user logged in\n';
+                    output.textContent += '   Click "Sign In with Google" to login';
+                }
+            } else {
+                output.className = 'output error';
+                output.textContent += '❌ Firebase Auth not initialized';
+            }
+        };
+
+        window.signInTest = async function() {
+            const output = document.getElementById('firebase-output');
+            output.className = 'output';
+            output.textContent = 'Signing in with Google...\n\n';
+            
+            try {
+                const provider = new GoogleAuthProvider();
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                
+                output.className = 'output success';
+                output.textContent += '✅ Sign in successful!\n\n';
+                output.textContent += `Email: ${user.email}\n`;
+                output.textContent += `UID: ${user.uid}\n`;
+                output.textContent += `Display Name: ${user.displayName}\n`;
+                output.textContent += `Photo: ${user.photoURL}\n\n`;
+                output.textContent += 'Now click "Get Firebase Token" to get your auth token';
+            } catch (error) {
+                output.className = 'output error';
+                output.textContent += `❌ Sign in failed: ${error.message}\n`;
+                output.textContent += `Code: ${error.code}`;
+            }
+        };
+
+        window.getToken = async function() {
+            const output = document.getElementById('firebase-output');
+            output.className = 'output';
+            
+            if (!auth.currentUser) {
+                output.className = 'output error';
+                output.textContent = '❌ No user logged in. Sign in first!';
+                return;
+            }
+            
+            output.textContent = 'Getting Firebase ID token...\n\n';
+            
+            try {
+                const token = await auth.currentUser.getIdToken(true);
+                output.className = 'output success';
+                output.textContent += '✅ Token obtained successfully!\n\n';
+                output.textContent += `Token (first 50 chars): ${token.substring(0, 50)}...\n\n`;
+                output.textContent += `Token length: ${token.length} characters\n\n`;
+                output.textContent += `Full token:\n${token}\n\n`;
+                output.textContent += 'Token copied to clipboard! (if supported)\n';
+                output.textContent += 'Now click "Test Backend with Token"';
+                
+                // Copy to clipboard
+                try {
+                    await navigator.clipboard.writeText(token);
+                } catch (e) {
+                    output.textContent += '\n\n(Could not copy to clipboard)';
+                }
+                
+                // Store for next test
+                window.currentToken = token;
+            } catch (error) {
+                output.className = 'output error';
+                output.textContent += `❌ Error getting token: ${error.message}`;
+            }
+        };
+
+        window.testBackendAuth = async function() {
+            const output = document.getElementById('auth-output');
+            output.className = 'output';
+            
+            if (!window.currentToken) {
+                output.className = 'output error';
+                output.textContent = '❌ No token available. Get token first!';
+                return;
+            }
+            
+            output.textContent = 'Testing backend with Firebase token...\n\n';
+            
+            const token = window.currentToken;
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+            
+            try {
+                // Test 1: Get current user
+                output.textContent += '1. Testing GET /api/v1/user/me...\n';
+                const userRes = await fetch(`${API_BASE}/user/me`, { headers });
+                output.textContent += `   Status: ${userRes.status}\n`;
+                
+                if (userRes.ok) {
+                    const userData = await userRes.json();
+                    output.textContent += `   ✅ User: ${userData.email}\n\n`;
+                } else {
+                    const errorData = await userRes.json();
+                    output.textContent += `   ❌ Error: ${JSON.stringify(errorData)}\n\n`;
+                }
+                
+                // Test 2: Get conversations
+                output.textContent += '2. Testing GET /api/v1/conversations...\n';
+                const convRes = await fetch(`${API_BASE}/conversations`, { headers });
+                output.textContent += `   Status: ${convRes.status}\n`;
+                
+                if (convRes.ok) {
+                    const conversations = await convRes.json();
+                    output.textContent += `   ✅ Found ${conversations.length} conversation(s)\n\n`;
+                } else {
+                    const errorData = await convRes.json();
+                    output.textContent += `   ❌ Error: ${JSON.stringify(errorData)}\n\n`;
+                }
+                
+                // Test 3: Send chat message
+                output.textContent += '3. Testing POST /api/v1/chat...\n';
+                const chatRes = await fetch(`${API_BASE}/chat`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ message: 'Test message from debug page' })
+                });
+                output.textContent += `   Status: ${chatRes.status}\n`;
+                
+                if (chatRes.ok) {
+                    const chatData = await chatRes.json();
+                    output.textContent += `   ✅ Chat response received\n`;
+                    output.textContent += `   Conversation ID: ${chatData.conversation_id}\n`;
+                    output.textContent += `   Message: ${chatData.message.content.substring(0, 100)}...\n\n`;
+                } else {
+                    const errorData = await chatRes.json();
+                    output.textContent += `   ❌ Error: ${JSON.stringify(errorData)}\n\n`;
+                }
+                
+                if (userRes.ok && convRes.ok) {
+                    output.className = 'output success';
+                    output.textContent += '\n✅ ALL TESTS PASSED!\n';
+                    output.textContent += 'Your authentication is working correctly!';
+                } else {
+                    output.className = 'output error';
+                    output.textContent += '\n❌ SOME TESTS FAILED\n';
+                    output.textContent += 'Check the errors above for details.';
+                }
+            } catch (error) {
+                output.className = 'output error';
+                output.textContent += `\n❌ Network error: ${error.message}\n`;
+                output.textContent += 'Make sure backend is running!';
+            }
+        };
+    </script>
+</body>
+</html>

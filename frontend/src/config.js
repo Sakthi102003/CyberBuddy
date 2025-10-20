@@ -1,11 +1,11 @@
 // Configuration for different environments
 const config = {
   development: {
-    API_BASE_URL: 'http://127.0.0.1:8000'
+    API_BASE_URL: 'http://127.0.0.1:8000/api/v1'
   },
   production: {
     // For Render deployment - will be injected via environment variable
-    API_BASE_URL: (import.meta.env.VITE_API_URL || 'https://cyberbuddy-backend-sf0g.onrender.com').replace(/\/$/, '')
+    API_BASE_URL: ((import.meta.env.VITE_API_URL || 'https://cyberbuddy-backend-sf0g.onrender.com').replace(/\/$/, '') + '/api/v1')
   }
 };
 
@@ -20,7 +20,7 @@ const environment = isDevelopment ? 'development' : 'production';
 // Force production URL if we're on a .onrender.com domain
 let finalApiUrl = config[environment].API_BASE_URL;
 if (window.location.hostname.includes('onrender.com')) {
-  finalApiUrl = import.meta.env.VITE_API_URL || 'https://cyberbuddy-backend-sf0g.onrender.com';
+  finalApiUrl = (import.meta.env.VITE_API_URL || 'https://cyberbuddy-backend-sf0g.onrender.com') + '/api/v1';
 }
 
 // Debug logging for troubleshooting

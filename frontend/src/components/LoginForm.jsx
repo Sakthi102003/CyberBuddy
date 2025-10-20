@@ -57,16 +57,19 @@ export default function LoginForm({ onLogin }) {
         user = await createUser(formData.email, formData.password, formData.username);
       }
       
-      // Create user object compatible with existing app structure
+      // Firebase auth handles user creation, no backend call needed
+      // App.jsx will handle loading user data via onAuthStateChange
       const userData = {
         id: user.uid,
         username: user.displayName || formData.username || user.email.split('@')[0],
         email: user.email,
-        firebase_uid: user.uid
+        display_name: user.displayName || formData.username,
+        photo_url: user.photoURL
       };
-
-      const token = await user.getIdToken();
-      onLogin(userData, token);
+      
+      // Just trigger onLogin - App.jsx auth state handler will do the rest
+      onLogin(userData, null);
+      
     } catch (error) {
       console.error('Authentication error:', error);
       let errorMessage = 'An error occurred. Please try again.';
@@ -94,15 +97,19 @@ export default function LoginForm({ onLogin }) {
     try {
       const user = await signInWithGoogle();
       
+      // Firebase auth handles user creation, no backend call needed
+      // App.jsx will handle loading user data via onAuthStateChange
       const userData = {
         id: user.uid,
         username: user.displayName || user.email.split('@')[0],
         email: user.email,
-        firebase_uid: user.uid
+        display_name: user.displayName,
+        photo_url: user.photoURL
       };
-
-      const token = await user.getIdToken();
-      onLogin(userData, token);
+      
+      // Just trigger onLogin - App.jsx auth state handler will do the rest
+      onLogin(userData, null);
+      
     } catch (error) {
       console.error('Google sign-in error:', error);
       setErrors({ general: 'Google sign-in failed. Please try again.' });

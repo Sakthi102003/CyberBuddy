@@ -1,94 +1,47 @@
-import hashlib
-import os
-from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+﻿from fastapi import HTTPException, status, Depends, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from database import FirebaseDB
+from typing import Optional
 
-import jwt
-from database import DatabaseManager
-from fastapi import Depends, Header, HTTPException
+security = HTTPBearer(auto_error=False)  # Don't auto-error, we'll handle it
 
-# JWT Configuration
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-this-in-production")
-JWT_ALGORITHM = "HS256"
-JWT_EXPIRATION_HOURS = 24 * 7  # 7 days
-
-db = DatabaseManager()
-
-def create_access_token(user_data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
-    """Create JWT access token."""
-    to_encode = user_data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
-    
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
-    return encoded_jwt
-
-def hash_token(token: str) -> str:
-    """Hash token for storage."""
-    return hashlib.sha256(token.encode()).hexdigest()
-
-def verify_token(token: str) -> Optional[Dict[str, Any]]:
-    """Verify JWT token."""
+async def get_current_user(request: Request, credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)):
     try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        # Log the incoming request for debugging
+        print(f"\n=== Auth attempt from {request.client.host} ===")
+        auth_header = request.headers.get('authorization', 'NOT PROVIDED')
+        print(f"Authorization header: {auth_header[:50] if len(auth_header) > 50 else auth_header}...")
         
-        # Check if session is still valid in database
-        token_hash = hash_token(token)
-        if not db.is_session_valid(token_hash):
-            return None
-            
-        return payload
-    except jwt.PyJWTError:
-        return None
-
-def get_current_user(authorization: Optional[str] = Header(None)) -> Dict[str, Any]:
-    """Get current user from JWT token."""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Authorization header missing")
-    
-    try:
-        # Extract token from "Bearer <token>"
-        scheme, token = authorization.split()
-        if scheme.lower() != "bearer":
-            raise HTTPException(status_code=401, detail="Invalid authentication scheme")
-    except ValueError:
-        raise HTTPException(status_code=401, detail="Invalid authorization header format")
-    
-    # Verify token
-    payload = verify_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-    
-    # Get user from database using session
-    token_hash = hash_token(token)
-    user = db.get_user_by_session(token_hash)
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found or session invalid")
-    
-    return user
-
-def create_user_session(user: Dict[str, Any], device_info: str = None) -> str:
-    """Create a new user session and return JWT token."""
-    # Create JWT token
-    token_data = {
-        "sub": str(user["id"]),
-        "username": user["username"],
-        "email": user["email"]
-    }
-    
-    token = create_access_token(token_data)
-    token_hash = hash_token(token)
-    
-    # Store session in database
-    expires_at = datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
-    db.create_session(user["id"], token_hash, expires_at, device_info)
-    
-    return token
-
-def invalidate_user_session(token: str) -> bool:
-    """Invalidate a user session."""
-    token_hash = hash_token(token)
-    return db.invalidate_session(token_hash)
+        if not credentials:
+            print("ERROR: No credentials provided (HTTPBearer returned None)")
+            raise HTTPException(status_code=401, detail='No authorization token provided')
+        
+        token = credentials.credentials
+        print(f"Token extracted (first 30 chars): {token[:30]}...")
+        
+        decoded_token = FirebaseDB.verify_token(token)
+        firebase_uid = decoded_token.get('uid')
+        email = decoded_token.get('email')
+        
+        print(f"✓ Token verified successfully for user: {email}")
+        
+        if not firebase_uid:
+            print("ERROR: No firebase_uid in decoded token")
+            raise HTTPException(status_code=401, detail='Invalid token: no uid')
+        
+        user = FirebaseDB.get_or_create_user(
+            firebase_uid=firebase_uid,
+            email=email,
+            display_name=decoded_token.get('name'),
+            photo_url=decoded_token.get('picture')
+        )
+        print(f"✓ User loaded: {user['email']}")
+        return user
+    except ValueError as e:
+        print(f"✗ ValueError in auth: {str(e)}")
+        raise HTTPException(status_code=401, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"✗ Exception in auth: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=401, detail=f'Authentication failed: {str(e)}')

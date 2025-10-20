@@ -37,9 +37,16 @@ venv.bak/
 .env.test.local
 .env.production.local
 
-# Firebase service account key (sensitive)
+# Firebase service account keys (sensitive) - ALL variations
+ServiceAccountKey.json
 serviceAccountKey.json
 firebase-service-account.json
+*ServiceAccountKey.json
+backend/.env
+backend/ServiceAccountKey.json
+
+# Gemini API key file
+list_models.py
 
 # Database files
 *.db

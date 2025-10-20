@@ -1,134 +1,329 @@
-# CyberBuddy - Cybersecurity AI Assistant
+# 🛡️ CyberBuddy# CyberBuddy - Cybersecurity AI Assistant
 
-A self-hosted AI-powered cybersecurity chatbot that provides expert guidance on cybersecurity laws, threats, best practices, frameworks, and security tools. Built with Firebase authentication and powered by Google Gemini API.
 
-## 🛡️ Features
 
-- **Cybersecurity-Focused**: Only responds to cybersecurity-related queries
+> Your AI-powered Cybersecurity AssistantA self-hosted AI-powered cybersecurity chatbot that provides expert guidance on cybersecurity laws, threats, best practices, frameworks, and security tools. Built with Firebase authentication and powered by Google Gemini API.
+
+
+
+CyberBuddy is a modern, full-stack chatbot application designed to help users learn about cybersecurity topics, understand security vulnerabilities, and get expert advice on security best practices. Built with React, FastAPI, Firebase, and Google's Gemini AI.## 🛡️ Features
+
+
+
+![CyberBuddy Banner](https://img.shields.io/badge/AI-Powered-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Python](https://img.shields.io/badge/python-3.11+-blue) ![React](https://img.shields.io/badge/react-18+-61DAFB)- **Cybersecurity-Focused**: Only responds to cybersecurity-related queries
+
 - **Firebase Authentication**: Secure email/password and Google sign-in
-- **Centralized API Management**: System-level Gemini API key (no user API key management required)
+
+## ✨ Features- **Centralized API Management**: System-level Gemini API key (no user API key management required)
+
 - **Persistent Chat History**: All conversations saved and synchronized
-- **Modern UI**: Responsive React-based chat interface with message bubbles
-- **Enhanced Markdown Support**: Rich text formatting with code blocks, tables, links, and more
-- **Real-time Chat**: Instant messaging with typing indicators and smooth animations
-- **Security-First Design**: Built-in XSS protection and content sanitization
-- **Dark/Light Theme**: Automatic theme switching with smooth transitions
+
+### 🤖 AI-Powered Chat- **Modern UI**: Responsive React-based chat interface with message bubbles
+
+- **Gemini 2.5 Flash** integration for fast, accurate responses- **Enhanced Markdown Support**: Rich text formatting with code blocks, tables, links, and more
+
+- Specialized cybersecurity knowledge base- **Real-time Chat**: Instant messaging with typing indicators and smooth animations
+
+- Context-aware conversations with message history- **Security-First Design**: Built-in XSS protection and content sanitization
+
+- Real-time typing indicators and smooth animations- **Dark/Light Theme**: Automatic theme switching with smooth transitions
+
 - **Multiple Chat Sessions**: Create and manage multiple conversation threads
-- **Gemini Integration**: Powered by Google's Gemini API for intelligent responses
-- **Self-Hosted**: Run entirely on your own infrastructure
-- **Professional Formatting**: Tables, code syntax highlighting, and structured content display
 
-## 🚀 Quick Start
+### 🎨 Modern UI/UX- **Gemini Integration**: Powered by Google's Gemini API for intelligent responses
 
-### Prerequisites
+- **Beautiful Interface** with gradient designs and smooth animations- **Self-Hosted**: Run entirely on your own infrastructure
 
-- Python 3.8 or higher
+- **Dark Mode** support with seamless theme switching- **Professional Formatting**: Tables, code syntax highlighting, and structured content display
+
+- **Responsive Design** optimized for desktop and mobile
+
+- **Message Features**:## 🚀 Quick Start
+
+  - Copy-to-clipboard for AI responses
+
+  - Markdown rendering with syntax highlighting### Prerequisites
+
+  - User and bot avatars
+
+  - Message timestamps- Python 3.8 or higher
+
 - Node.js 16 or higher (for frontend development)
-- Google Gemini API key ([Get one here](https://aistudio.google.com/app/apikey))
-- Firebase project with Authentication enabled
 
-### Installation
+### 📁 Smart Chat Management- Google Gemini API key ([Get one here](https://aistudio.google.com/app/apikey))
 
-1. **Clone or download this repository**
+- **Date-based Grouping** (Today, Yesterday, Last 7 Days, Older)- Firebase project with Authentication enabled
+
+- **Message Previews** in sidebar
+
+- **Search Functionality** to find specific chats### Installation
+
+- **Chat Editing** - rename conversations
+
+- **Loading Skeletons** for better UX1. **Clone or download this repository**
+
    ```bash
-   cd CyberBuddy
-   ```
 
-2. **Set up Firebase**
-   - Go to [Firebase Console](https://console.firebase.google.com/)
+### 🔐 Authentication & Security   cd CyberBuddy
+
+- **Firebase Authentication** with Google OAuth   ```
+
+- **Secure Token Management** with ID tokens
+
+- **Protected API Routes** with bearer token validation2. **Set up Firebase**
+
+- **Clock Skew Tolerance** for token verification   - Go to [Firebase Console](https://console.firebase.google.com/)
+
    - Create a new project or use existing one
-   - Enable Authentication with Email/Password and Google sign-in
-   - Go to Project Settings → Service Accounts
-   - Generate a new private key and download the JSON file
-   - Place the JSON file as `serviceAccountKey.json` in the `backend` folder
 
-3. **Set up the backend**
+### 🎯 Smart Features   - Enable Authentication with Email/Password and Google sign-in
+
+- **Quick Start Questions** - 24+ example cybersecurity questions   - Go to Project Settings → Service Accounts
+
+- **Auto-Ask Feature** - Click example questions for instant answers   - Generate a new private key and download the JSON file
+
+- **Random Question Rotation** - New suggestions on each login   - Place the JSON file as `ServiceAccountKey.json` in the `backend` folder
+
+- **Home Button** - Easy navigation back to welcome screen   - See `docs/setup_firebase.md` for detailed instructions
+
+
+
+## 🚀 Quick Start3. **Set up the backend**
+
    ```bash
-   cd backend
-   
-   # Create virtual environment (recommended)
-   python -m venv venv
-   
+
+### Prerequisites   cd backend
+
+- Python 3.11+   
+
+- Node.js 18+   # Create virtual environment (recommended)
+
+- Firebase account   python -m venv venv
+
+- Google Gemini API key   
+
    # Activate virtual environment
-   # On Windows:
+
+### Backend Setup   # On Windows:
+
    venv\Scripts\activate
-   # On macOS/Linux:
-   source venv/bin/activate
-   
-   # Install dependencies
+
+1. **Navigate to backend directory**   # On macOS/Linux:
+
+```bash   source venv/bin/activate
+
+cd backend   
+
+```   # Install dependencies
+
    pip install -r requirements.txt
-   ```
 
-4. **Configure environment variables**
-   - Create/edit `backend/.env` file:
-   ```env
-   GEMINI_API_KEY=your_actual_gemini_api_key_here
+2. **Create virtual environment**   ```
+
+```bash
+
+python -m venv venv4. **Configure environment variables**
+
+venv\Scripts\activate  # Windows   - Create/edit `backend/.env` file:
+
+source venv/bin/activate  # Linux/Mac   ```env
+
+```   GEMINI_API_KEY=your_actual_gemini_api_key_here
+
    FIREBASE_SERVICE_ACCOUNT_KEY=serviceAccountKey.json
-   ```
 
-5. **Configure Firebase in frontend**
-   - Update `frontend/src/firebase/config.js` with your Firebase project configuration
+3. **Install dependencies**   ```
 
-6. **Start the backend server**
-   ```bash
-   python main.py
-   ```
+```bash
+
+pip install -r requirements.txt5. **Configure Firebase in frontend**
+
+```   - Update `frontend/src/firebase/config.js` with your Firebase project configuration
+
+
+
+4. **Configure environment variables**6. **Start the backend server**
+
+Create a `.env` file in the `backend` directory:   ```bash
+
+```env   # Option 1: Direct run
+
+GEMINI_API_KEY=your_gemini_api_key_here   python main.py
+
+```   
+
+   # Option 2: Using the runner script
+
+5. **Add Firebase credentials**   python run_backend.py
+
+Place your `ServiceAccountKey.json` in the `backend` directory (download from Firebase Console)   ```
+
    The API will be available at `http://127.0.0.1:8000`
 
-7. **Set up and start the frontend**
-   ```bash
-   cd ../frontend
-   
+6. **Run the backend**
+
+```bash7. **Set up and start the frontend**
+
+python main.py   ```bash
+
+```   cd ../frontend
+
+Backend will run on `http://localhost:8000`   
+
    # Install dependencies
-   npm install
+
+### Frontend Setup   npm install
+
    
-   # Start development server
-   npm run dev
-   ```
-   The frontend will be available at `http://localhost:5173`
 
-## 📁 Project Structure
+1. **Navigate to frontend directory**   # Start development server
 
-```
-CyberBuddy/
+```bash   npm run dev
+
+cd frontend   ```
+
+```   The frontend will be available at `http://localhost:5173`
+
+
+
+2. **Install dependencies**## 📁 Project Structure
+
+```bash
+
+npm install```
+
+```CyberBuddy/
+
 ├── backend/
-│   ├── main.py                    # FastAPI application
-│   ├── firebase_auth.py          # Firebase authentication module
-│   ├── database.py               # Database management
-│   ├── requirements.txt          # Python dependencies
-│   ├── .env                      # Environment variables (API keys)
-│   ├── serviceAccountKey.json    # Firebase service account key
-│   └── chatbot.db               # SQLite database
-├── frontend/
-│   ├── index.html               # Main HTML file
-│   ├── package.json             # Frontend dependencies
-│   ├── vite.config.js           # Vite configuration
-│   ├── tailwind.config.js       # Tailwind CSS configuration
-│   └── src/
-│       ├── App.jsx              # Main React application
-│       ├── index.jsx            # React entry point
-│       ├── index.css            # Global styles
-│       ├── config.js            # API configuration
-│       ├── components/
-│       │   ├── Chatbot.jsx            # Main chat interface
-│       │   ├── MarkdownRenderer.jsx   # Enhanced markdown parser
-│       │   ├── Sidebar.jsx            # Chat session sidebar
-│       │   ├── ThemeToggle.jsx        # Theme switching component
-│       │   ├── LoginForm.jsx          # User authentication
-│       │   └── UserProfile.jsx        # User profile management
-│       ├── contexts/
-│       │   └── ThemeContext.jsx       # Theme state management
-│       ├── firebase/
-│       │   ├── auth.js                # Firebase auth functions
-│       │   └── config.js              # Firebase configuration
-│       └── utils/
-│           ├── api.js                 # API service functions
-│           └── localStorage.js        # Local storage utilities
-├── setup_firebase.md            # Firebase setup instructions
-└── README.md                    # This file
-```
 
-## 🔧 API Endpoints
+3. **Configure Firebase**│   ├── main.py                    # FastAPI application
+
+Update `frontend/src/firebase/config.js` with your Firebase config│   ├── firebase_auth.py          # Firebase authentication module
+
+│   ├── database.py               # Database management
+
+4. **Run the frontend**│   ├── postgres_db.py            # PostgreSQL database module
+
+```bash│   ├── auth.py                   # Authentication utilities
+
+npm run dev│   ├── run_backend.py            # Backend runner script
+
+```│   ├── requirements.txt          # Python dependencies
+
+Frontend will run on `http://localhost:5173`│   ├── .env                      # Environment variables (API keys)
+
+│   ├── ServiceAccountKey.json    # Firebase service account key
+
+## 📁 Project Structure│   └── chatbot.db                # SQLite database
+
+├── frontend/
+
+```│   ├── index.html                # Main HTML file
+
+CyberBuddy/│   ├── package.json              # Frontend dependencies
+
+├── backend/│   ├── vite.config.js            # Vite configuration
+
+│   ├── main.py              # FastAPI application│   ├── tailwind.config.js        # Tailwind CSS configuration
+
+│   ├── chatbot.py           # Gemini AI integration│   ├── postcss.config.js         # PostCSS configuration
+
+│   ├── auth.py              # Authentication logic│   └── src/
+
+│   ├── database.py          # Firestore operations│       ├── App.jsx               # Main React application
+
+│   ├── config.py            # Configuration settings│       ├── index.jsx             # React entry point
+
+│   └── requirements.txt     # Python dependencies│       ├── index.css             # Global styles
+
+├── frontend/│       ├── config.js             # API configuration
+
+│   ├── src/│       ├── components/
+
+│   │   ├── components/      # React components│       │   ├── Chatbot.jsx            # Main chat interface
+
+│   │   ├── firebase/        # Firebase config│       │   ├── MarkdownRenderer.jsx   # Enhanced markdown parser
+
+│   │   ├── utils/           # API utilities│       │   ├── Sidebar.jsx            # Chat session sidebar
+
+│   │   └── App.jsx          # Main app component│       │   ├── ThemeToggle.jsx        # Theme switching component
+
+│   └── package.json│       │   ├── LoginForm.jsx          # User authentication
+
+└── README.md│       │   ├── UserProfile.jsx        # User profile management
+
+```│       │   ├── ConnectionStatus.jsx   # Connection monitoring
+
+│       │   └── DebugPanel.jsx         # Debug panel component
+
+## 🔧 API Endpoints│       ├── contexts/
+
+│       │   └── ThemeContext.jsx       # Theme state management
+
+### Chat Endpoints│       ├── firebase/
+
+- `POST /api/v1/chat` - Send message and get AI response│       │   ├── auth.js                # Firebase auth functions
+
+- `GET /api/v1/conversations` - Get all user conversations│       │   └── config.js              # Firebase configuration
+
+- `GET /api/v1/conversations/{id}/messages` - Get conversation messages│       ├── hooks/
+
+- `PUT /api/v1/conversations/{id}` - Update conversation title│       │   └── useMediaQuery.js       # Media query hook
+
+- `DELETE /api/v1/conversations/{id}` - Delete conversation│       └── utils/
+
+│           ├── api.js                 # API service functions
+
+## 🎨 Tech Stack│           └── localStorage.js        # Local storage utilities
+
+├── config/
+
+### Frontend│   ├── docker-compose.yml        # Docker Compose configuration
+
+- React 18, Vite, Tailwind CSS, Firebase Auth│   ├── Dockerfile                # Docker container definition
+
+│   ├── render.yaml               # Render deployment config
+
+### Backend│   └── vercel.json               # Vercel deployment config
+
+- FastAPI, Google Gemini AI, Firebase Admin SDK, Uvicorn├── scripts/
+
+│   ├── deploy.sh                 # Unix deployment script
+
+### Database│   ├── deploy.bat                # Windows deployment script
+
+- Firebase Firestore│   ├── deploy-check.sh           # Deployment verification
+
+│   └── start.sh                  # Application start script
+
+## 🔐 Security├── docs/
+
+│   ├── AUTHENTICATION_MIGRATION.md    # Auth migration guide
+
+⚠️ **Before pushing to GitHub:**│   ├── DEPLOYMENT.md                  # Deployment instructions
+
+- ✅ `.env` file is gitignored│   ├── FIREBASE_INTEGRATION.md        # Firebase setup guide
+
+- ✅ `ServiceAccountKey.json` is gitignored│   ├── IMPLEMENTATION_COMPLETE.md     # Implementation notes
+
+- ✅ Never commit API keys or credentials│   ├── INTEGRATION_SUMMARY.md         # Integration overview
+
+│   ├── RENDER_DEPLOYMENT.md           # Render deployment guide
+
+## 📄 License│   ├── RENDER_DEPLOYMENT_GUIDE.md     # Detailed Render guide
+
+│   └── setup_firebase.md              # Firebase setup steps
+
+MIT License - see LICENSE file for details├── .gitignore                    # Git ignore rules
+
+└── README.md                     # This file
+
+---```
+
+
+
+**Built with ❤️ for the cybersecurity community**## 🔧 API Endpoints
+
 
 ### Authentication
 All endpoints require Firebase authentication token in the Authorization header:

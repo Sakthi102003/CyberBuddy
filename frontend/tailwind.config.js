@@ -7,6 +7,21 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      animation: {
+        'fadeIn': 'fadeIn 0.5s ease-out',
+        'slideIn': 'slideIn 0.4s ease-out',
+        'bounce-slow': 'bounce 2s infinite',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideIn: {
+          '0%': { opacity: '0', transform: 'translateX(-20px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+      },
       screens: {
         'xs': '475px',
         '3xl': '1600px',
