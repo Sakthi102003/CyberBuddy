@@ -47,7 +47,7 @@ function ChatItem({
           ) : (
             <>
               <h3 className="text-gray-900 dark:text-gray-200 font-medium text-sm truncate mb-1">
-                {chat.title}
+                {String(chat.title || 'Untitled Chat')}
               </h3>
               {/* Message Preview */}
               <p className="text-gray-500 dark:text-gray-400 text-xs truncate">
@@ -117,7 +117,7 @@ export default function Sidebar({
       return;
     }
     setEditingChat(chat.id);
-    setEditTitle(chat.title);
+    setEditTitle(String(chat.title || 'Untitled Chat'));
   };
 
   const handleEditSave = () => {
@@ -181,7 +181,8 @@ export default function Sidebar({
   const getLastMessage = (chat) => {
     if (!chat.messages || chat.messages.length === 0) return '';
     const lastMsg = chat.messages[chat.messages.length - 1];
-    const content = lastMsg.content || '';
+    if (!lastMsg || !lastMsg.content) return '';
+    const content = String(lastMsg.content);
     return content.length > 50 ? content.substring(0, 50) + '...' : content;
   };
 

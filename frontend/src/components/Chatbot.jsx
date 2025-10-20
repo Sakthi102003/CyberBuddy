@@ -12,6 +12,7 @@ export default function Chatbot({ chat, updateChatMessages, updateChatTitle, rep
   const [copiedId, setCopiedId] = useState(null);
   const bottomRef = useRef(null);
   const initialMessageSent = useRef(false);
+  const lastChatId = useRef(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -24,10 +25,18 @@ export default function Chatbot({ chat, updateChatMessages, updateChatTitle, rep
     }
   }, [chat, messagesLoaded]);
 
-  // Reset when chat changes
+  // Reset when chat changes - but only if it's a truly different chat
   useEffect(() => {
-    setMessagesLoaded(false);
-    initialMessageSent.current = false;
+    // If this is the first time or the chat ID actually changed to a different chat
+    if (!lastChatId.current || (chat?.id !== lastChatId.current && !lastChatId.current.startsWith('temp_'))) {
+      setMessagesLoaded(false);
+      initialMessageSent.current = false;
+      lastChatId.current = chat?.id;
+    } else if (chat?.id && lastChatId.current && lastChatId.current.startsWith('temp_') && !chat.id.startsWith('temp_')) {
+      // This is a temp ID being replaced with a real ID - just update the ref, don't reset
+      console.log('Chat ID updated from temp to real, keeping loaded state');
+      lastChatId.current = chat.id;
+    }
   }, [chat?.id]);
 
   // Auto-send initial message if provided (only once per chat)
@@ -45,6 +54,13 @@ export default function Chatbot({ chat, updateChatMessages, updateChatTitle, rep
 
   const loadChatMessages = async () => {
     if (!chat || messagesLoaded) return;
+    
+    // If chat already has messages, don't reload
+    if (chat.messages && chat.messages.length > 0) {
+      console.log('Chat already has messages, skipping load');
+      setMessagesLoaded(true);
+      return;
+    }
     
     // If chat ID is temporary (starts with 'temp_'), it's a new chat that hasn't been created yet
     // Just show the welcome message without trying to load from backend

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Chatbot from './components/Chatbot';
 import LoginForm from './components/LoginForm';
 import Sidebar from './components/Sidebar';
@@ -161,7 +161,7 @@ function AppContent() {
       // Convert API response to match existing format
       const formattedChats = sessions.map(session => ({
         id: session.id,
-        title: session.title || 'Untitled Chat', // Ensure title is always a string
+        title: String(session.title || 'Untitled Chat'), // Ensure title is always a string
         messages: [], // Will be loaded when needed
         created_at: session.created_at,
         updated_at: session.updated_at
@@ -198,6 +198,11 @@ function AppContent() {
   };
 
   const createNewChat = async (initialMessage = null) => {
+    // Handle case where event object is passed (from onClick)
+    if (initialMessage && typeof initialMessage !== 'string') {
+      initialMessage = null;
+    }
+    
     // If there's an active chat with only the welcome message, don't create a new one
     const currentChat = getCurrentChat();
     if (currentChat && currentChat.messages.length <= 1 && !initialMessage) {
@@ -209,7 +214,7 @@ function AppContent() {
     const newChat = {
       id: tempId, // Temporary ID until backend creates the real conversation
       tempId: tempId, // Mark this as temporary
-      title: initialMessage ? (initialMessage.length > 30 ? initialMessage.substring(0, 30) + '...' : initialMessage) : 'New Chat',
+      title: initialMessage ? String(initialMessage.length > 30 ? initialMessage.substring(0, 30) + '...' : initialMessage) : 'New Chat',
       messages: [
         { id: 'welcome', role: 'assistant', content: 'Hello, I am your Cybersecurity assistant. How can I help you today?' }
       ],
@@ -286,17 +291,24 @@ function AppContent() {
     return chats.find(chat => chat.id === activeChat) || null;
   };
 
+  // Memoize the current chat to prevent unnecessary re-renders
+  const currentChat = useMemo(() => {
+    return chats.find(chat => chat.id === activeChat) || null;
+  }, [chats, activeChat]);
+
   const filteredChats = chats.filter(chat => {
     // Ensure title and messages exist and are valid
-    const title = chat.title || '';
+    const title = String(chat.title || '');
     const messages = chat.messages || [];
     const query = searchQuery.toLowerCase();
     
     return (
       title.toLowerCase().includes(query) ||
-      messages.some(msg => 
-        msg && msg.content && msg.content.toLowerCase().includes(query)
-      )
+      messages.some(msg => {
+        if (!msg || !msg.content) return false;
+        const content = String(msg.content);
+        return content.toLowerCase().includes(query);
+      })
     );
   });
 
@@ -372,7 +384,7 @@ function AppContent() {
         <div className="flex-1 flex items-center justify-center">
           {activeChat ? (
             <Chatbot 
-              chat={getCurrentChat()}
+              chat={currentChat}
               updateChatMessages={updateChatMessages}
               updateChatTitle={updateChatTitle}
               replaceTempChatId={replaceTempChatId}
