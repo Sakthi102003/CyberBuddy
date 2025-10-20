@@ -55,7 +55,10 @@ export default function Chatbot({ chat, updateChatMessages, updateChatTitle, rep
         role: 'bot',
         content: 'Hello, I am your Cybersecurity assistant. How can I help you today?'
       };
-      updateChatMessages(chat.id, [welcomeMessage]);
+      // Only add welcome message if there are no messages yet
+      if (!chat.messages || chat.messages.length === 0) {
+        updateChatMessages(chat.id, [welcomeMessage]);
+      }
       setMessagesLoaded(true);
       return;
     }
